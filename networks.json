@@ -1,0 +1,8 @@
+{
+  "mainnet": {
+    "RainiCards": {
+      "address": "0x54F456B544abFb785694400bcb1D85629B2D437f",
+      "startBlock": 13287265
+    }
+  }
+}
