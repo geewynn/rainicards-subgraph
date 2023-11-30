@@ -1,6 +1,6 @@
 specVersion: 0.0.5
 schema:
-  file: ./schema.graphql
+  file: schema.graphql
 dataSources:
   - kind: ethereum
     name: RainiCards
@@ -23,15 +23,11 @@ dataSources:
         - URI
       abis:
         - name: RainiCards
-          file: ./abis/RainiCards.json
+          file: RainiCards/abis/RainiCards.json
       eventHandlers:
-        - event: TransferBatch(indexed address,indexed address,indexed address,uint256[],uint256[])
-          handler: handleTransferBatch
         - event: TransferSingle(indexed address,indexed address,indexed address,uint256,uint256)
           handler: handleTransferSingle
-        - event: URI(string,indexed uint256)
-          handler: handleURI
-      file: ./src/raini-cards.ts
+      file: RainiCards/RainiCards.wasm
 templates:
   - kind: file/arweave
     name: ArweaveMetadata
@@ -43,6 +39,6 @@ templates:
         - Meta
       abis:
         - name: ERC1155CreatorImplementation
-          file: ./abis/RainiCards.json
+          file: ArweaveMetadata/abis/RainiCards.json
       handler: handleNFTMetadata
-      file: ./src/meta.ts
+      file: templates/ArweaveMetadata/ArweaveMetadata.wasm

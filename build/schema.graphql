@@ -40,3 +40,28 @@ interface Event {
   id: ID!
   timestamp: BigInt!
 }
+
+type Meta @entity(immutable: true) {
+  "Meta data addess"
+  id: ID!
+  "Full meta data related to an address"
+  nft: RainiCardsNft!
+  "Content of the meta data"
+  content: String
+  "This is the content details for Oibel 1155NFT"
+  name: String
+  "Name for who created the NFT"
+  createdBy: String
+  "A decription the the creator can use to describe the NFT"
+  description: String
+  "Image URL"
+  image: String
+  "The artist that created the NFT"
+  artist: String
+  "Year the NFT was created"
+  year: String
+  "What collection the NFT is part of"
+  collection: String
+  "Who deployed the NFT"
+  medium: String
+}

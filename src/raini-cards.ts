@@ -1,124 +1,71 @@
 import {
-  ApprovalForAll as ApprovalForAllEvent,
-  RoleAdminChanged as RoleAdminChangedEvent,
-  RoleGranted as RoleGrantedEvent,
-  RoleRevoked as RoleRevokedEvent,
   TransferBatch as TransferBatchEvent,
   TransferSingle as TransferSingleEvent,
-  URI as URIEvent
-} from "../generated/RainiCards/RainiCards"
+  URI as URIEvent,
+} from "../generated/RainiCards/RainiCards";
+import { RainiCardsRegistry } from "../generated/schema";
 import {
-  ApprovalForAll,
-  RoleAdminChanged,
-  RoleGranted,
-  RoleRevoked,
-  TransferBatch,
-  TransferSingle,
-  URI
-} from "../generated/schema"
+  getOrCreateToken,
+  getOrCreateAccount,
+  getOrCreateTransfer,
+  getOrCreateRegistry,
+} from "./helper";
 
-export function handleApprovalForAll(event: ApprovalForAllEvent): void {
-  let entity = new ApprovalForAll(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.account = event.params.account
-  entity.operator = event.params.operator
-  entity.approved = event.params.approved
+export function handleTransferSingle(event: TransferSingleEvent): void {
+  let registry = getOrCreateRegistry(event.address);
+  let token = getOrCreateToken(registry, event.params.id);
+  let operator = getOrCreateAccount(event.params.operator);
+  let from = getOrCreateAccount(event.params.from);
+  let to = getOrCreateAccount(event.params.to);
+  token.save();
+  registry.save();
+  operator.save();
+  from.save();
+  to.save();
 
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-
-  entity.save()
-}
-
-export function handleRoleAdminChanged(event: RoleAdminChangedEvent): void {
-  let entity = new RoleAdminChanged(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.role = event.params.role
-  entity.previousAdminRole = event.params.previousAdminRole
-  entity.newAdminRole = event.params.newAdminRole
-
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-
-  entity.save()
-}
-
-export function handleRoleGranted(event: RoleGrantedEvent): void {
-  let entity = new RoleGranted(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.role = event.params.role
-  entity.account = event.params.account
-  entity.sender = event.params.sender
-
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-
-  entity.save()
-}
-
-export function handleRoleRevoked(event: RoleRevokedEvent): void {
-  let entity = new RoleRevoked(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.role = event.params.role
-  entity.account = event.params.account
-  entity.sender = event.params.sender
-
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-
-  entity.save()
+  getOrCreateTransfer(
+    event,
+    "",
+    registry,
+    operator,
+    from,
+    to,
+    event.params.id,
+    event.params.value
+  );
 }
 
 export function handleTransferBatch(event: TransferBatchEvent): void {
-  let entity = new TransferBatch(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.operator = event.params.operator
-  entity.from = event.params.from
-  entity.to = event.params.to
-  entity.ids = event.params.ids
-  entity.values = event.params.values
+  let registry = getOrCreateRegistry(event.address);
+  let operator = getOrCreateAccount(event.params.operator);
+  let from = getOrCreateAccount(event.params.from);
+  let to = getOrCreateAccount(event.params.to);
+  registry.save();
+  operator.save();
+  from.save();
+  to.save();
 
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-
-  entity.save()
-}
-
-export function handleTransferSingle(event: TransferSingleEvent): void {
-  let entity = new TransferSingle(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.operator = event.params.operator
-  entity.from = event.params.from
-  entity.to = event.params.to
-  entity.RainiCards_id = event.params.id
-  entity.value = event.params.value
-
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-
-  entity.save()
+  let ids = event.params.ids;
+  let values = event.params.values;
+  for (let i = 0; i < ids.length; ++i) {
+    getOrCreateTransfer(
+      event,
+      "-".concat(i.toString()),
+      registry,
+      operator,
+      from,
+      to,
+      ids[i],
+      values[i]
+    );
+  }
 }
 
 export function handleURI(event: URIEvent): void {
-  let entity = new URI(event.transaction.hash.concatI32(event.logIndex.toI32()))
-  entity.value = event.params.value
-  entity.RainiCards_id = event.params.id
+  let registry = new RainiCardsRegistry(event.address.toHex());
+  registry.save();
 
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-
-  entity.save()
+  let token = getOrCreateToken(registry, event.params.id);
+  token.URI = event.params.value;
+  token.save();
 }
